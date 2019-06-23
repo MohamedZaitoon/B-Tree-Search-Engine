@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-public class ReflectionHelper {
+class ReflectionHelper {
 
-    public static List<Class<?>> findClassesImplementing (final Class<?> interfaceClass, final Package fromPackage) {
+    static List<Class<?>> findClassesImplementing(final Class<?> interfaceClass, final Package fromPackage) {
 
         if (interfaceClass == null) {
             System.out.println("Unknown subclass.");
@@ -22,33 +22,18 @@ public class ReflectionHelper {
             return null;
         }
 
-        final List<Class<?>> rVal = new ArrayList<Class<?>>();
+        final List<Class<?>> rVal = new ArrayList<>();
         try {
             final Class<?>[] targets = getAllClassesFromPackage(fromPackage.getName());
-            if (targets != null) {
-                for (Class<?> aTarget : targets) {
-                    if (aTarget == null) {
-                        continue;
-                    }
-                    else if (aTarget.equals(interfaceClass)) {
-                        //System.out.println("Found the interface definition.");
-                        continue;
-                    }
-                    else if (!interfaceClass.isAssignableFrom(aTarget)) {
-                        //System.out.println("Class '" + aTarget.getName() + "' is not a " + interfaceClass.getName());
-                        continue;
-                    }
-                    else {
-                        rVal.add(aTarget);
-                    }
+            for (Class<?> aTarget : targets) {
+                if (aTarget != null && !aTarget.equals(interfaceClass) && interfaceClass.isAssignableFrom(aTarget)) {
+                    rVal.add(aTarget);
                 }
             }
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             System.out.println("Error reading package name.");
             //System.out.printStackTrace(e, System.out.LOW_LEVEL);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Error reading classes in package.");
             //System.out.printStackTrace(e, System.out.LOW_LEVEL);
         }
@@ -58,72 +43,72 @@ public class ReflectionHelper {
 
     /**
      * Load all classes from a package.
-     * 
-     * @param packageName
-     * @return
-     * @throws ClassNotFoundException
-     * @throws IOException
+     *
+     * @param packageName package name.
+     * @return classes.
+     * @throws ClassNotFoundException exception.
+     * @throws IOException exception.
      */
     private static Class<?>[] getAllClassesFromPackage(final String packageName) throws ClassNotFoundException, IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String path = packageName.replace('.', '/');
         Enumeration<URL> resources = classLoader.getResources(path);
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
             dirs.add(new File(resource.getFile()));
         }
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classes = new ArrayList<>();
         for (File directory : dirs) {
             classes.addAll(findClasses(directory, packageName));
         }
-        return classes.toArray(new Class[classes.size()]);
+        return classes.toArray(new Class[0]);
     }
 
     /**
      * Find file in package.
-     * 
-     * @param directory
-     * @param packageName
-     * @return
-     * @throws ClassNotFoundException
+     *
+     * @param directory dir.
+     * @param packageName package name.
+     * @return list of classes
+     * @throws ClassNotFoundException exception.
      */
     private static List<Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List<Class<?>> classes = new ArrayList<Class<?>>();
+        List<Class<?>> classes = new ArrayList<>();
         if (!directory.exists()) {
             return classes;
         }
         File[] files = directory.listFiles();
+        assert files != null;
         for (File file : files) {
             if (file.isDirectory()) {
                 assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
-            }
-            else if (file.getName().endsWith(".class")) {
+            } else if (file.getName().endsWith(".class")) {
                 classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
             }
         }
         return filterConcerteClasses(classes);
     }
-    
-    private static List<Class<?>> filterConcerteClasses(List<Class<?>> classes){
-    	
-    	List<Class<?>> filteredClasses = null ;
-    	
-    	for (Class<?> fetchedClass : classes){
-    		Integer modifiers = fetchedClass.getModifiers();
-    		
-    		if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && Modifier.isPublic(modifiers)){
-    			if (filteredClasses == null){
-    				filteredClasses = new ArrayList<Class<?>>();
-    			}
-    			
-    			filteredClasses.add(fetchedClass);
-    		}
-    	}
-    
-    	return filteredClasses;
+
+    private static List<Class<?>> filterConcerteClasses(List<Class<?>> classes) {
+
+        List<Class<?>> filteredClasses = null;
+
+        for (Class<?> fetchedClass : classes) {
+            int modifiers = fetchedClass.getModifiers();
+
+            if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && Modifier.isPublic(modifiers)) {
+                if (filteredClasses == null) {
+                    filteredClasses = new ArrayList<>();
+                }
+
+                filteredClasses.add(fetchedClass);
+            }
+        }
+
+        return filteredClasses;
     }
-    
+
 }

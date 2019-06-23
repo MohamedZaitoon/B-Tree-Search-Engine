@@ -15,7 +15,7 @@ public class Utilities {
 	 * @return list of files' paths or empty list if directory is empty,
 	 * 					or null in case of dirPath is null or empty.
 	 */
-	public static List<String> getFilePaths(String dirPath){
+	static List<String> getFilePaths(String dirPath){
 		if(dirPath == null || dirPath.isEmpty())return null;
 		List<String> paths = new LinkedList<>();
 		Queue<String> q = new LinkedList<>();

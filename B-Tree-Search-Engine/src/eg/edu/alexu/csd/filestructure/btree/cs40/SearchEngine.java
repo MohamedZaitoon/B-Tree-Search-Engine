@@ -19,7 +19,7 @@ public class SearchEngine implements ISearchEngine {
     public SearchEngine(int t) {
         bTree = new BTree(t);
         try {
-            parser = new Parser(bTree);
+            parser = new Parser();
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
@@ -27,7 +27,7 @@ public class SearchEngine implements ISearchEngine {
 
     @Override
     public void indexWebPage(String filePath) {
-        NodeList documents = parser.getDocuments(filePath, "doc");
+        NodeList documents = parser.getDocuments(filePath);
         indexOrDelete(documents, true);
     }
 
@@ -41,7 +41,7 @@ public class SearchEngine implements ISearchEngine {
 
     @Override
     public void deleteWebPage(String filePath) {
-        NodeList documents = parser.getDocuments(filePath, "doc");
+        NodeList documents = parser.getDocuments(filePath);
         indexOrDelete(documents, false);
     }
 
@@ -60,13 +60,13 @@ public class SearchEngine implements ISearchEngine {
     @Override
     public List<ISearchResult> searchByMultipleWordWithRanking(String sentence) {
         // TODO Auto-generated method stub
-        if(sentence == null) throw new RuntimeErrorException(null);
+        if (sentence == null) throw new RuntimeErrorException(null);
         List<String> words = parser.getWords(sentence);
-        if(words.size() == 0) return new LinkedList<>();
+        if (words.size() == 0) return new LinkedList<>();
         List<List<ISearchResult>> results = new ArrayList<>(words.size());
-        for(String word : words) results.add(searchByWordWithRanking(word));
+        for (String word : words) results.add(searchByWordWithRanking(word));
         for (int i = 1; i < words.size(); i++) {
-            if(results.get(i) == null) return new LinkedList<>();
+            if (results.get(i) == null) return new LinkedList<>();
             results.set(0, results.get(0).stream().distinct().filter(results.get(i)::contains).collect(Collectors.toList()));
         }
         return results.get(0);
